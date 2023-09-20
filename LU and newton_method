@@ -1,0 +1,141 @@
+import numpy as np
+
+def modulo(x):
+    if x>=0:
+        return x
+    else:
+        return -x
+    
+    
+
+def eliminação_gaussiana_pivo(A):
+    pivo=[]
+    for i in range(len(A)):          
+        j=i                         
+        a=0
+        while j<len(A):
+            a=max(modulo(A[j,i]),a)
+            j=j+1
+        t=i          
+        f=0
+        while t<len(A):              
+            if a==modulo(A[t,i]):
+                f=t
+                pivo.append((f,i))    
+                break
+            t=t+1
+
+        if f!=i:                                          
+            A[[i,f],0:]=A[[f,i],0:]
+
+        for j in range(i+1,len(A)): 
+
+            A[j,i]=A[j,i]/A[i,i]
+
+        for s in range(i+1,len(A)):
+            for r in range(i+1,len(A)):
+                A[s,r]=A[s,r]-A[s,i]*A[i,r]
+    return pivo
+
+def funcao3(lista,b):                       
+    
+    for i in range(len(lista)):             
+        if lista[len(lista)-i-1][0]!=lista[len(lista)-i-1][1]:
+            x=lista[len(lista)-i-1][0]
+            y=lista[len(lista)-i-1][1]
+            b[[x,y]]=b[[y,x]]
+    return b
+
+def funcao4(A,b):                           
+    L=np.zeros((len(A),len(A)))             
+    U=np.zeros((len(A),len(A)))            
+    for i in range(len(A)):                 
+        for j in range(i+1):                
+            if j==i:
+                L[i,j]=1
+            else:
+                L[i,j]=A[i,j]
+
+    for i in range(len(A)):
+        for j in range(i,len(A)):
+            U[i,j]=A[i,j]
+
+    
+    a=0
+    for i in range(0,len(L)):
+        for j in range(0,i):
+            a=a-L[i,j]*b[j]
+        b[i]=(b[i]+a)*1/L[i,i]
+        a=0
+    
+    d=len(U)-1
+    a1=0
+    for i in range(0,len(U)):
+        for j in range(0,i):
+            a1=a1-U[d-i,d-j]*b[d-j]
+        b[d-i]=(b[d-i]+a1)*1/U[d-i,d-i]
+        a1=0
+
+    return b
+
+def extração_L(A):
+    B=np.zeros((len(A),len(A)))
+    for i in range(len(A)):
+        for j in range(0,i+1):
+            if i==j:
+                B[i,j]=1
+            else:
+                B[i,j]=A[i,j]
+    return B
+                
+def extração_U(A):
+    P=np.zeros((len(A),len(A)))
+    for i in range(len(A)):
+        for j in range(i,len(A)):
+            P[i,j]=A[i,j]
+    return P
+
+def jacobiano(a,b):
+    f11=4-3*a**2
+    f12=1
+    f21=-2*a/9
+    f22=(4-2*b)/4
+    
+    return np.array([[f11,f12],[f21,f22]])
+
+def F(a,b):
+    F1=4*a-a**3+b
+    F2=-a**2/9+(4*b-b**2)/4 +1
+    
+    return np.array([F1,F2])
+
+def modulo_vetor(b):
+    n=len(b)
+    a=0
+    for i in range(n):
+        a=max(a,modulo(b[i]))
+    
+    return a
+    
+def método_newton(a,b,e):
+    B=F(a,b)
+    i=0
+    while modulo_vetor(F(B[0],B[1]))>e:
+        i=i+1
+        print(i)
+        A=jacobiano(a,b)
+        B=F(a,b)
+        C=np.array([a,b])
+        B=-B
+        pivo=eliminação_gaussiana_pivo(A)
+        funcao3(pivo,B)
+        funcao4(A,B)
+        B=B+C
+        a=B[0]
+        b=B[1]
+        print(B)
+
+    
+    return B
+
+método_newton(-1.0,-2.0,10**(-4))
